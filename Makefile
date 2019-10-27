@@ -20,7 +20,7 @@ OUTNAME_TIFF = MandelbrotSet2_tiff
 
 
 
-MandelbrotSet2: $(OFILES_PNM)
+MandelbrotSet2: $(OFILES)
 	$(CC) $(WARNING) $(LIBES) $(OPTION) -o $(OUTNAME_PNM) $(OFILES_PNM)
 	$(CC) $(WARNING) $(LIBES) $(OPTION) -o $(OUTNAME_TIFF) $(OFILES_TIFF)
 
