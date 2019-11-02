@@ -39,12 +39,13 @@ main(int argc, char *argv[])
 	    "\n"
 	    " -h, --help        Show command list\n"
 	    " -o FILENAME       Specify output filename\n"
-	    " -8b               Set 8-bit pgm output\n"
-	    "                   Default pgm output is 16 bits\n"
+	    " -8b               Set 8-bit depth output\n"
+	    "                   Default output bit depth is 16 bits\n"
 	    " VAR=NUM           Set some variable (M, N, TIME) as NUM\n"
 	    "                        M    : picture height\n"
 	    "                        N    : picture width\n"
 	    "                        TIME : Maximum time count for checking diverge or not\n"
+	    "                               (default: %d)\n"
 	    "\n"
 	    " *** Examples ***\n"
 	    "\n"
@@ -63,31 +64,35 @@ main(int argc, char *argv[])
 	int i;
 
 	if (argc > 1) {
-		for (i=1; i < argc; i++) {
+		for (i = 1; i < argc; i++) {
 			if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0)) {
-				printf("%s", help);
+				printf(help, DEFAULT_TIMEMAX);
 				exit(EXIT_SUCCESS);
 			} else if (strcmp(argv[i], "-o") == 0) {
 				i++;
 				strlcpy(filename, argv[i], FILENAME_LENGTH/2);
 			} else if (strcmp(argv[i], "-8b") == 0) {
 				BPS = 8;
-			} else if ((ptr = strchr(argv[i], '=')) != 0) {
+				printf("Set bit depth %d-bit\n", BPS);
+			} else if ((ptr = strchr(argv[i], '=')) != NULL) {
 				if (argv[i][0] == 'M') {
 					sscanf(ptr + 1, "%7d", &M);
+					printf("picture height = %d\n", M);
 				} else if (argv[i][0] == 'N') {
 					sscanf(ptr + 1, "%7d", &N);
+					printf("picture width = %d\n", N);
 				} else if (strncmp(argv[i], "TIME", 4) == 0) {
 					sscanf(ptr + 1, "%10u", &TimeMax);
+					printf("time count max = %d\n", TimeMax);
 				}
 			}
 		}
 	}
-	if ((M < 1) && (N > 0)) {
+	if ((M <= 0) && (N > 0)) {
 		M = ceil(N * 2.0 / 3.0);
-	} else if ((N < 1) && (M > 0)) {
+	} else if ((M > 0) && (N <= 0)) {
 		N = ceil(M * 3.0 / 2.0);
-	} else {
+	} else if ((M <= 0) && (N <= 0)) {
 		M = DEFAULT_M;
 		N = DEFAULT_N;
 	}
@@ -102,7 +107,7 @@ main(int argc, char *argv[])
 	Mandelbrot(img, M, N, BPS, ceil(M / 2.0), ceil(N * 2.0 / 3.0), TimeMax);
 	printf("Complete!\n");
 	writeimage(filename, img, M, N, BPS);
-	printf("Saved to \"MandelbrotSet_%s.tif\"\n", filename);
+	printf("Saved to \"MandelbrotSet_%s.pgm\"\n", filename);
 	return EXIT_SUCCESS;
 }
 
@@ -138,6 +143,7 @@ Mandelbrot(uint16_t *img, int M, int N, int BPS, int BaseM, int BaseN, unsigned 
 				znp1 = c_plus(c_mult(zn, zn), c);
 				if (c_abs_p2(znp1) > MAX_VAL) {
 					arr[N*m + n] = i + 1.0/(c_abs(znp1) - 1.0);
+					//arr[N*m + n] = i;
 					break;
 				}
 				zn = znp1;
